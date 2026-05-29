@@ -24,6 +24,7 @@ from unittest.mock import MagicMock, patch
 from transformers import AutoModelForCausalLM, AutoTokenizer, KernelConfig
 from transformers.integrations.hub_kernels import (
     _HUB_KERNEL_MAPPING,
+    _KERNEL_MAPPING,
     _KERNEL_MODULE_MAPPING,
     is_kernel,
     lazy_load_kernel,
@@ -340,6 +341,25 @@ class TestKernelUtilities(TestCasePlus):
             else:
                 HUB[name] = original_entry
             _KERNEL_MODULE_MAPPING.pop(name, None)
+
+    def test_default_kernel_repositories_pin_version_or_revision(self):
+        repos = []
+
+        def collect_repos(value):
+            if isinstance(value, dict):
+                for child in value.values():
+                    collect_repos(child)
+            elif hasattr(value, "_repo_id"):
+                repos.append(value)
+
+        collect_repos(_KERNEL_MAPPING)
+
+        self.assertGreater(len(repos), 0)
+        for repo in repos:
+            self.assertTrue(
+                getattr(repo, "_version", None) is not None or getattr(repo, "_revision", None) is not None,
+                f"{repo!r} must specify a kernel version or revision",
+            )
 
 
 @require_kernels
