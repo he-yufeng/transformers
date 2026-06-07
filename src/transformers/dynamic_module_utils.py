@@ -54,8 +54,10 @@ def _sanitize_module_name(name: str) -> str:
 
     1. Replace `.` in module names with `_dot_`.
     2. Replace `-` in module names with `_hyphen_`.
-    3. If the module name starts with a digit, prepend it with `_`.
-    4. Warn if the sanitized name is a Python reserved keyword or not a valid identifier.
+    3. Replace `/` in module names with `_slash_`.
+    4. Replace `\` in module names with `_backslash_`.
+    5. If the module name starts with a digit, prepend it with `_`.
+    6. Warn if the sanitized name is a Python reserved keyword or not a valid identifier.
 
     If the input name is already a valid identifier, it is returned unchanged.
     """
@@ -63,7 +65,9 @@ def _sanitize_module_name(name: str) -> str:
     # separator used in module names, replacing `\W` with `_` would create too many collisions.
     # Once a module is imported, it is cached in `sys.modules` and the second import would return
     # the first module, which might not be the expected behavior if name collisions happen.
-    new_name = name.replace(".", "_dot_").replace("-", "_hyphen_")
+    new_name = (
+        name.replace(".", "_dot_").replace("-", "_hyphen_").replace("/", "_slash_").replace("\\", "_backslash_")
+    )
     if new_name and new_name[0].isdigit():
         new_name = f"_{new_name}"
     if keyword.iskeyword(new_name):

@@ -131,6 +131,14 @@ def test_import_parsing(tmp_path, case):
     assert parsed_imports == ["os"]
 
 
+def test_sanitize_module_name_replaces_path_separators():
+    sanitized = dynamic_module_utils._sanitize_module_name("repo.name/model-part\\custom")
+
+    assert sanitized == "repo_dot_name_slash_model_hyphen_part_backslash_custom"
+    assert "/" not in sanitized
+    assert "\\" not in sanitized
+
+
 def _create_local_module(module_dir: Path, module_code: str, helper_code: str | None = None):
     module_dir.mkdir(parents=True, exist_ok=True)
     (module_dir / "custom_model.py").write_text(module_code, encoding="utf-8")
